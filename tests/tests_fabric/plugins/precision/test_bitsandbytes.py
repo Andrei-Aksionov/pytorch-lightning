@@ -132,7 +132,11 @@ def test_bitsandbytes_layers(args, expected):
     quantized_state_dict = model.state_dict()
     keys = model.load_state_dict(quantized_state_dict, strict=True)
     assert not keys.missing_keys
-    # TODO: support unquantizing the state_dict so that it can be loaded into the original model
+    # `.state_dict` should return a dequantized weights so it can be loaded into the orignial model
+    dequantized_state_dict = model.state_dict()
+    model = MyModel()
+    keys = model.load_state_dict(dequantized_state_dict, strict=True)
+    assert not keys.missing_keys
 
     fabric = Fabric(devices=1, plugins=BitsandbytesPrecision(*args, ignore_modules={"foo"}))
     with pytest.raises(RuntimeError, match="not supported"), fabric.init_module():
